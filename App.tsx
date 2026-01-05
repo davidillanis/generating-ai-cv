@@ -1,13 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { RequireAuth } from './components/RequireAuth';
+import { supabase } from './services/supabase';
 import { CVData, CVTemplateType, FormalityLevel } from './types';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
 import Templates from './pages/Templates';
+import Login from './pages/Login';
 
-// Mock Initial Data conforme a estándares de Perú
+// Mock Initial Data conforme a estándares de Perú (Failsafe fallback)
 const INITIAL_CV_SKELETON: CVData = {
   id: '',
   title: '',
@@ -34,118 +38,197 @@ const INITIAL_CV_SKELETON: CVData = {
   projects: []
 };
 
-const INITIAL_CV: CVData = {
-  ...INITIAL_CV_SKELETON,
-  id: '1',
-  title: 'Mi CV Profesional',
-  lastModified: new Date().toISOString(),
-  personal: {
-    firstName: 'Juan',
-    lastName: 'Pérez García',
-    email: 'juan.perez@email.com',
-    phone: '+51 987 654 321',
-    city: 'Lima',
-    country: 'Perú',
-    linkedin: 'linkedin.com/in/juanperez',
-    website: 'juanperez.dev',
-    profileSummary: 'Ingeniero de Sistemas con más de 6 años de experiencia en desarrollo de software escalable. Especialista en arquitecturas cloud (AWS/GCP) y liderazgo de equipos técnicos bajo metodologías ágiles. Enfocado en resultados y optimización de procesos críticos de negocio.'
-  },
-  experience: [
-    {
-      id: 'e1',
-      role: 'Senior Software Engineer',
-      company: 'Banco de Crédito del Perú (BCP)',
-      location: 'Lima, Perú',
-      startDate: '2021-01',
-      endDate: '',
-      current: true,
-      description: '• Lideré el desarrollo de la nueva plataforma de banca móvil, impactando a más de 2 millones de usuarios.\n• Optimicé los tiempos de respuesta de la API en un 35% mediante el uso de Redis.\n• Implementé pipelines de CI/CD reduciendo los errores en despliegue en un 20%.'
+// Main App Component with State & Auth Logic
+const AppContent: React.FC = () => {
+  const { user, loading } = useAuth();
+  const [cvs, setCvs] = useState<CVData[]>([]);
+  const [activeCVId, setActiveCVId] = useState<string>('');
+  const [dataLoaded, setDataLoaded] = useState(false);
+
+  // Load CVs from Supabase when user is authenticated
+  useEffect(() => {
+    if (!user) {
+      setCvs([]);
+      return;
     }
-  ],
-  education: [
-    {
-      id: 'ed1',
-      degree: 'Ingeniería de Sistemas',
-      institution: 'Pontificia Universidad Católica del Perú (PUCP)',
-      location: 'Lima, Perú',
-      startDate: '2014-03',
-      endDate: '2019-12'
+
+    const loadCVs = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cvs')
+          .select('*')
+          .order('updated_at', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const parsedCvs = data.map(row => ({
+            ...row.content,
+            id: row.id, // Use DB UUID
+            title: row.title, // Sync title from column
+            lastModified: row.updated_at
+          }));
+          setCvs(parsedCvs);
+          setActiveCVId(parsedCvs[0].id);
+        } else {
+             // No CVs found, don't create default yet, let user create one in Dashboard
+             setCvs([]);
+        }
+      } catch (err) {
+        console.error('Error loading CVs:', err);
+      } finally {
+        setDataLoaded(true);
+      }
+    };
+
+    loadCVs();
+  }, [user]);
+
+  const activeCV = cvs.find(c => c.id === activeCVId) || (cvs[0] ?? { ...INITIAL_CV_SKELETON, id: 'temp' });
+
+  const updateActiveCV = async (newData: CVData) => {
+    // 1. Optimistic Update
+    setCvs(prev => prev.map(c => c.id === newData.id ? { ...newData, lastModified: new Date().toISOString() } : c));
+    
+    // 2. Persist to Supabase
+    if (user && newData.id && newData.id !== 'temp') {
+      try {
+        const { error } = await supabase
+          .from('cvs')
+          .update({
+            title: newData.title,
+            content: newData,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', newData.id);
+          
+        if (error) throw error;
+      } catch (err) {
+        console.error('Error saving CV:', err);
+        // Could revert state here
+      }
     }
-  ],
-  skills: [
-    { id: 's1', name: 'React & Redux', type: 'Technical' },
-    { id: 's2', name: 'Node.js / Express', type: 'Technical' },
-    { id: 's3', name: 'AWS (S3, Lambda, EC2)', type: 'Technical' },
-    { id: 's4', name: 'Gestión de Equipos', type: 'Soft' },
-    { id: 's5', name: 'Pensamiento Analítico', type: 'Soft' },
-    { id: 's6', name: 'Comunicación Asertiva', type: 'Soft' }
-  ],
-  languages: [
-    { id: 'l1', name: 'Español', level: 'Nativo' },
-    { id: 'l2', name: 'Inglés', level: 'Avanzado' }
-  ],
-  certifications: [
-    { id: 'c1', name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', date: '2022' }
-  ],
-  projects: []
+  };
+
+  const createNewCV = async (initialData?: Partial<CVData>) => {
+    if (!user) return '';
+
+    const timestamp = new Date().toISOString();
+    const tempId = crypto.randomUUID(); // Temporary ID
+
+    const newCVContent: CVData = { 
+        ...INITIAL_CV_SKELETON, 
+        ...initialData,
+        id: tempId,
+        title: initialData?.title || 'Nuevo Currículum',
+        lastModified: timestamp,
+        personal: {
+            ...INITIAL_CV_SKELETON.personal,
+            ...(initialData?.personal || {})
+        }
+    };
+
+    try {
+        const { data, error } = await supabase
+            .from('cvs')
+            .insert({
+                user_id: user.id,
+                title: newCVContent.title,
+                content: newCVContent,
+                updated_at: timestamp
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        if (data) {
+            const finalCV = { ...newCVContent, id: data.id };
+            setCvs(prev => [finalCV, ...prev]);
+            setActiveCVId(data.id);
+            return data.id;
+        }
+    } catch (err) {
+        console.error('Error creating CV:', err);
+        alert('Error al crear el CV');
+    }
+    return '';
+  };
+
+  const deleteCV = async (id: string) => {
+    if (!user) return;
+    
+    // Optimistic update
+    const previousCvs = [...cvs];
+    setCvs(prev => prev.filter(c => c.id !== id));
+
+    try {
+      const { error } = await supabase
+        .from('cvs')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      // If the deleted CV was active, switch to another one
+      if (activeCVId === id) {
+        const remaining = cvs.filter(c => c.id !== id);
+        if (remaining.length > 0) {
+          setActiveCVId(remaining[0].id);
+        } else {
+          setActiveCVId('');
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting CV:', err);
+      // Revert state on error
+      setCvs(previousCvs);
+      alert('Error al eliminar el CV');
+    }
+  };
+
+  if (loading) return null; // Or loading spinner
+
+  return (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
+      
+      <Route 
+        path="/dashboard" 
+        element={
+          <RequireAuth>
+            <Dashboard cvs={cvs} onSelect={setActiveCVId} onCreate={createNewCV} onDelete={deleteCV} />
+          </RequireAuth>
+        } 
+      />
+      <Route 
+        path="/editor" 
+        element={
+          <RequireAuth>
+            <Editor data={activeCV} onUpdate={updateActiveCV} />
+          </RequireAuth>
+        } 
+      />
+      <Route 
+        path="/templates" 
+        element={
+          <RequireAuth>
+            <Templates data={activeCV} onUpdate={updateActiveCV} />
+          </RequireAuth>
+        } 
+      />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
 };
 
 const App: React.FC = () => {
-  const [cvs, setCvs] = useState<CVData[]>([INITIAL_CV]);
-  const [activeCVId, setActiveCVId] = useState<string>(INITIAL_CV.id);
-
-  const activeCV = cvs.find(c => c.id === activeCVId) || INITIAL_CV;
-
-  const updateActiveCV = (newData: CVData) => {
-    setCvs(prev => prev.map(c => c.id === newData.id ? { ...newData, lastModified: new Date().toISOString() } : c));
-  };
-
-  const createNewCV = (initialData?: Partial<CVData>) => {
-    const newId = Math.random().toString(36).substr(2, 9);
-    
-    // Deep merge or structure assignment for parsed data
-    const newCV: CVData = { 
-      ...INITIAL_CV_SKELETON, 
-      ...initialData,
-      id: newId, 
-      title: initialData?.title || 'Nuevo Currículum', 
-      lastModified: new Date().toISOString(),
-      personal: {
-        ...INITIAL_CV_SKELETON.personal,
-        ...(initialData?.personal || {})
-      },
-      experience: initialData?.experience || [],
-      education: initialData?.education || [],
-      skills: initialData?.skills || [],
-      languages: initialData?.languages || [],
-      certifications: initialData?.certifications || [],
-      projects: initialData?.projects || []
-    };
-    
-    setCvs(prev => [...prev, newCV]);
-    setActiveCVId(newId);
-    return newId;
-  };
-
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route 
-          path="/dashboard" 
-          element={<Dashboard cvs={cvs} onSelect={setActiveCVId} onCreate={createNewCV} />} 
-        />
-        <Route 
-          path="/editor" 
-          element={<Editor data={activeCV} onUpdate={updateActiveCV} />} 
-        />
-        <Route 
-          path="/templates" 
-          element={<Templates data={activeCV} onUpdate={updateActiveCV} />} 
-        />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </HashRouter>
+    <AuthProvider>
+      <HashRouter>
+        <AppContent />
+      </HashRouter>
+    </AuthProvider>
   );
 };
 

@@ -13,7 +13,7 @@ const LandingPage: React.FC = () => {
           <h2 className="text-xl font-bold tracking-tight">CV Inteligente</h2>
         </div>
         <div className="flex gap-4">
-          <button onClick={() => navigate('/dashboard')} className="px-4 py-2 text-sm font-semibold hover:text-primary transition-colors">Iniciar Sesión</button>
+          <button onClick={() => navigate('/login')} className="px-4 py-2 text-sm font-semibold hover:text-primary transition-colors">Iniciar Sesión</button>
           <button onClick={() => navigate('/dashboard')} className="px-5 py-2.5 bg-primary text-white rounded-lg font-bold text-sm shadow-lg hover:bg-primary-hover transition-all">Crear CV Gratis</button>
         </div>
       </header>

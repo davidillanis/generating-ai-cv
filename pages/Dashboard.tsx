@@ -4,13 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { CVData, CVTemplateType, FormalityLevel } from '../types';
 import { parseCVDocument } from '../services/geminiService';
 
+import { useAuth } from '../contexts/AuthContext';
+
 interface DashboardProps {
   cvs: CVData[];
   onSelect: (id: string) => void;
-  onCreate: (initialData?: Partial<CVData>) => string;
+  onCreate: (initialData?: Partial<CVData>) => Promise<string>;
+  onDelete: (id: string) => Promise<void>;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate }) => {
+const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate, onDelete }) => {
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -21,9 +25,16 @@ const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate }) => {
     navigate('/editor');
   };
 
-  const handleCreateNew = () => {
-    const newId = onCreate();
+  const handleCreateNew = async () => {
+    await onCreate();
     navigate('/editor');
+  };
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (confirm('¿Estás seguro de que deseas eliminar este currículum? Esta acción no se puede deshacer.')) {
+      await onDelete(id);
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +51,7 @@ const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate }) => {
         setUploadStatus('Analizando con IA...');
         try {
           const parsedData = await parseCVDocument(base64, file.type);
-          const newId = onCreate(parsedData);
+          await onCreate(parsedData);
           setUploadStatus('¡Completado!');
           setTimeout(() => {
             navigate('/editor');
@@ -71,7 +82,16 @@ const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate }) => {
             <span className="font-black text-lg">CV IA PRO</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="size-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-xs">JP</div>
+            <span className="text-sm font-medium text-slate-600 hidden md:block">{user?.email}</span>
+            <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs uppercase">
+              {user?.email?.charAt(0) || 'U'}
+            </div>
+            <button 
+              onClick={() => signOut()} 
+              className="text-sm text-slate-500 hover:text-red-500 font-medium ml-2"
+            >
+              Salir
+            </button>
           </div>
        </header>
 
@@ -123,7 +143,7 @@ const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate }) => {
                   <span className="text-xs text-slate-400">Modificado: {new Date(cv.lastModified).toLocaleDateString()}</span>
                   <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button className="p-1.5 hover:bg-slate-100 rounded text-slate-500"><span className="material-symbols-outlined text-sm">content_copy</span></button>
-                    <button className="p-1.5 hover:bg-red-50 rounded text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button>
+                    <button onClick={(e) => handleDelete(e, cv.id)} className="p-1.5 hover:bg-red-50 rounded text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button>
                   </div>
                 </div>
               </div>

@@ -1,0 +1,8 @@
+
+{
+  "name": "CV Inteligente IA",
+  "description": "Plataforma avanzada para la creación y optimización de currículums vitae potenciada por inteligencia artificial, diseñada para estándares peruanos e internacionales.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

@@ -35,8 +35,8 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
   };
 
   const updateItem = (key: keyof CVData, id: string, fields: any) => {
-    handleUpdate({ 
-      [key]: (data[key] as any[]).map((item: any) => item.id === id ? { ...item, ...fields } : item) 
+    handleUpdate({
+      [key]: (data[key] as any[]).map((item: any) => item.id === id ? { ...item, ...fields } : item)
     });
   };
 
@@ -68,23 +68,23 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
     <div className="h-screen flex flex-col bg-background-light overflow-hidden">
       <header className="h-16 bg-white border-b flex items-center justify-between px-6 shrink-0 z-50">
         <div className="flex items-center gap-6">
-           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
-              <span className="material-symbols-outlined text-primary">arrow_back</span>
-              <span className="font-black text-lg">CV IA PRO</span>
-           </div>
-           <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
-           <input 
-              value={data.title}
-              onChange={(e) => handleUpdate({ title: e.target.value })}
-              className="border-none bg-transparent font-bold focus:ring-0 text-slate-700 w-48 text-sm"
-           />
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <span className="material-symbols-outlined text-primary">arrow_back</span>
+            <span className="font-black text-lg">CV IA PRO</span>
+          </div>
+          <div className="h-6 w-px bg-slate-200 hidden md:block"></div>
+          <input
+            value={data.title}
+            onChange={(e) => handleUpdate({ title: e.target.value })}
+            className="border-none bg-transparent font-bold focus:ring-0 text-slate-700 w-48 text-sm"
+          />
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/templates')} className="h-9 px-4 border rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-slate-50 transition-colors">
             <span className="material-symbols-outlined text-[18px]">palette</span> Cambiar Plantilla
           </button>
-          <button 
-            onClick={handleExportPDF} 
+          <button
+            onClick={handleExportPDF}
             className="h-9 px-4 bg-primary text-white rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary-hover shadow-lg transition-all active:scale-95"
           >
             <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span> Exportar PDF
@@ -97,7 +97,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
         <aside className="w-64 bg-white border-r flex flex-col shrink-0">
           <nav className="p-4 space-y-1">
             {navItems.map(item => (
-              <button 
+              <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id as SectionType)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${activeSection === item.id ? 'bg-primary text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'}`}
@@ -112,7 +112,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
         {/* Dynamic Form Area */}
         <main className="flex-1 overflow-y-auto bg-[#f8fafc] custom-scroll">
           <div className="max-w-3xl mx-auto p-12 space-y-10">
-            
+
             {activeSection === 'personal' && (
               <section className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
                 <div>
@@ -150,9 +150,9 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                   </div>
                 </div>
                 <div className="space-y-3">
-                   <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumen Profesional</label>
-                    <button 
+                    <button
                       onClick={handleOptimizeProfile}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-[10px] font-bold hover:bg-primary hover:text-white transition-all disabled:opacity-50"
                       disabled={isOptimizing}
@@ -160,13 +160,13 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                       <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
                       {isOptimizing ? 'Optimizando...' : 'Mejorar con IA'}
                     </button>
-                   </div>
-                   <textarea 
+                  </div>
+                  <textarea
                     className="w-full rounded-xl border-slate-200 h-40 text-sm leading-relaxed p-4 focus:ring-primary focus:border-primary"
                     placeholder="Escribe un breve resumen de tu trayectoria y objetivos..."
                     value={data.personal.profileSummary}
                     onChange={e => handlePersonalChange('profileSummary', e.target.value)}
-                   />
+                  />
                 </div>
               </section>
             )}
@@ -174,16 +174,16 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
             {activeSection === 'experience' && (
               <section className="space-y-6 animate-in fade-in">
                 <div className="flex justify-between items-end">
-                   <div>
+                  <div>
                     <h2 className="text-2xl font-black text-slate-900">Experiencia Laboral</h2>
                     <p className="text-slate-500 text-sm">Tu historial de empleos en orden cronológico inverso.</p>
-                   </div>
-                   <button 
+                  </div>
+                  <button
                     onClick={() => addItem('experience', { id: Date.now().toString(), role: '', company: '', location: '', startDate: '', endDate: '', current: false, description: '' })}
                     className="h-10 px-4 bg-white border border-primary text-primary font-bold rounded-xl text-xs flex items-center gap-2 hover:bg-primary/5"
-                   >
+                  >
                     <span className="material-symbols-outlined">add</span> Añadir Puesto
-                   </button>
+                  </button>
                 </div>
                 <div className="space-y-4">
                   {data.experience.map(exp => (
@@ -212,13 +212,13 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
             {activeSection === 'education' && (
               <section className="space-y-6 animate-in fade-in">
                 <div className="flex justify-between items-end">
-                   <h2 className="text-2xl font-black text-slate-900">Formación Académica</h2>
-                   <button 
+                  <h2 className="text-2xl font-black text-slate-900">Formación Académica</h2>
+                  <button
                     onClick={() => addItem('education', { id: Date.now().toString(), degree: '', institution: '', location: '', startDate: '', endDate: '' })}
                     className="h-10 px-4 bg-white border border-primary text-primary font-bold rounded-xl text-xs flex items-center gap-2"
-                   >
+                  >
                     <span className="material-symbols-outlined">add</span> Añadir Estudio
-                   </button>
+                  </button>
                 </div>
                 {data.education.map(edu => (
                   <div key={edu.id} className="bg-white p-6 rounded-2xl border shadow-sm space-y-4 relative">
@@ -243,25 +243,25 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Técnicas (Hard Skills)</h4>
                     <div className="space-y-2">
-                       {data.skills.filter(s => s.type === 'Technical').map(s => (
-                         <div key={s.id} className="flex gap-2">
-                            <input className="flex-1 rounded-lg border-slate-200 text-xs h-9" value={s.name} onChange={e => updateItem('skills', s.id, { name: e.target.value })} />
-                            <button onClick={() => removeItem('skills', s.id)} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button>
-                         </div>
-                       ))}
-                       <button onClick={() => addItem('skills', { id: Date.now().toString(), name: '', type: 'Technical' })} className="w-full border-2 border-dashed rounded-lg py-2 text-[10px] font-bold text-slate-400 hover:border-primary hover:text-primary transition-all">+ Añadir Técnica</button>
+                      {data.skills.filter(s => s.type === 'Technical').map(s => (
+                        <div key={s.id} className="flex gap-2">
+                          <input className="flex-1 rounded-lg border-slate-200 text-xs h-9" value={s.name} onChange={e => updateItem('skills', s.id, { name: e.target.value })} />
+                          <button onClick={() => removeItem('skills', s.id)} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                        </div>
+                      ))}
+                      <button onClick={() => addItem('skills', { id: Date.now().toString(), name: '', type: 'Technical' })} className="w-full border-2 border-dashed rounded-lg py-2 text-[10px] font-bold text-slate-400 hover:border-primary hover:text-primary transition-all">+ Añadir Técnica</button>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Blandas (Soft Skills)</h4>
                     <div className="space-y-2">
-                       {data.skills.filter(s => s.type === 'Soft').map(s => (
-                         <div key={s.id} className="flex gap-2">
-                            <input className="flex-1 rounded-lg border-slate-200 text-xs h-9" value={s.name} onChange={e => updateItem('skills', s.id, { name: e.target.value })} />
-                            <button onClick={() => removeItem('skills', s.id)} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button>
-                         </div>
-                       ))}
-                       <button onClick={() => addItem('skills', { id: Date.now().toString(), name: '', type: 'Soft' })} className="w-full border-2 border-dashed rounded-lg py-2 text-[10px] font-bold text-slate-400 hover:border-primary hover:text-primary transition-all">+ Añadir Blanda</button>
+                      {data.skills.filter(s => s.type === 'Soft').map(s => (
+                        <div key={s.id} className="flex gap-2">
+                          <input className="flex-1 rounded-lg border-slate-200 text-xs h-9" value={s.name} onChange={e => updateItem('skills', s.id, { name: e.target.value })} />
+                          <button onClick={() => removeItem('skills', s.id)} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined text-[18px]">close</span></button>
+                        </div>
+                      ))}
+                      <button onClick={() => addItem('skills', { id: Date.now().toString(), name: '', type: 'Soft' })} className="w-full border-2 border-dashed rounded-lg py-2 text-[10px] font-bold text-slate-400 hover:border-primary hover:text-primary transition-all">+ Añadir Blanda</button>
                     </div>
                   </div>
                 </div>
@@ -274,20 +274,56 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                   <h2 className="text-2xl font-black text-slate-900">Idiomas</h2>
                   <button onClick={() => addItem('languages', { id: Date.now().toString(), name: '', level: 'Básico' })} className="text-primary text-xs font-bold">+ Añadir Idioma</button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                   {data.languages.map(lang => (
-                     <div key={lang.id} className="bg-white p-4 rounded-xl border flex gap-3 items-center">
-                        <input className="flex-1 rounded-lg border-slate-200 text-sm" value={lang.name} onChange={e => updateItem('languages', lang.id, { name: e.target.value })} placeholder="Idioma" />
-                        <select className="rounded-lg border-slate-200 text-xs" value={lang.level} onChange={e => updateItem('languages', lang.id, { level: e.target.value })}>
-                          <option>Básico</option>
-                          <option>Intermedio</option>
-                          <option>Avanzado</option>
-                          <option>Nativo</option>
-                        </select>
-                        <button onClick={() => removeItem('languages', lang.id)} className="text-slate-300 hover:text-red-500"><span className="material-symbols-outlined">delete</span></button>
-                     </div>
-                   ))}
-                </div>
+                {data.languages.length === 0 ? (
+                  <div className="text-center py-12 border-2 border-dashed rounded-xl text-slate-400 bg-slate-50">
+                    <span className="material-symbols-outlined text-4xl mb-2 block opacity-40">translate</span>
+                    <p className="text-sm font-medium">No has añadido idiomas</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {data.languages.map((lang) => (
+                      <div
+                        key={lang.id}
+                        className="bg-white rounded-lg border border-slate-200 p-4 hover:border-slate-300 transition-colors"
+                      >
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          {/* Input idioma */}
+                          <div className="flex-1 min-w-0">
+                            <input
+                              className="w-full rounded-lg border-slate-200 text-sm h-10 focus:border-primary focus:ring-1 focus:ring-primary"
+                              value={lang.name}
+                              onChange={e => updateItem('languages', lang.id, { name: e.target.value })}
+                              placeholder="Ej: Inglés, Español"
+                            />
+                          </div>
+
+                          {/* Select nivel */}
+                          <div className="w-full sm:w-40">
+                            <select
+                              className="w-full rounded-lg border-slate-200 text-sm h-10 font-medium focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer"
+                              value={lang.level}
+                              onChange={e => updateItem('languages', lang.id, { level: e.target.value })}
+                            >
+                              <option value="Básico">Básico</option>
+                              <option value="Intermedio">Intermedio</option>
+                              <option value="Avanzado">Avanzado</option>
+                              <option value="Nativo">Nativo</option>
+                            </select>
+                          </div>
+
+                          {/* Botón eliminar */}
+                          <button
+                            onClick={() => removeItem('languages', lang.id)}
+                            className="h-10 w-full sm:w-10 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center"
+                            title="Eliminar"
+                          >
+                            <span className="material-symbols-outlined text-[20px]">delete</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             )}
 
@@ -298,7 +334,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                     <h2 className="text-2xl font-black text-slate-900">Cursos y Certificaciones</h2>
                     <p className="text-slate-500 text-sm">Añade tus certificaciones, diplomas o cursos relevantes.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => addItem('certifications', { id: Date.now().toString(), name: '', issuer: '', date: '' })}
                     className="h-10 px-4 bg-white border border-primary text-primary font-bold rounded-xl text-xs flex items-center gap-2 hover:bg-primary/5"
                   >
@@ -314,31 +350,31 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-400 uppercase">Nombre del Curso / Certificación</label>
-                          <input 
-                            placeholder="Ej. Scrum Master Professional" 
-                            className="w-full rounded-lg border-slate-200 text-sm h-10 focus:ring-primary focus:border-primary" 
-                            value={cert.name} 
-                            onChange={e => updateItem('certifications', cert.id, { name: e.target.value })} 
+                          <input
+                            placeholder="Ej. Scrum Master Professional"
+                            className="w-full rounded-lg border-slate-200 text-sm h-10 focus:ring-primary focus:border-primary"
+                            value={cert.name}
+                            onChange={e => updateItem('certifications', cert.id, { name: e.target.value })}
                           />
                         </div>
                         <div className="space-y-1">
                           <label className="text-[10px] font-bold text-slate-400 uppercase">Institución Emisora</label>
-                          <input 
-                            placeholder="Ej. Google, Coursera, Universidad..." 
-                            className="w-full rounded-lg border-slate-200 text-sm h-10 focus:ring-primary focus:border-primary" 
-                            value={cert.issuer} 
-                            onChange={e => updateItem('certifications', cert.id, { issuer: e.target.value })} 
+                          <input
+                            placeholder="Ej. Google, Coursera, Universidad..."
+                            className="w-full rounded-lg border-slate-200 text-sm h-10 focus:ring-primary focus:border-primary"
+                            value={cert.issuer}
+                            onChange={e => updateItem('certifications', cert.id, { issuer: e.target.value })}
                           />
                         </div>
                       </div>
                       <div className="w-1/3 space-y-1">
                         <label className="text-[10px] font-bold text-slate-400 uppercase">Año de Finalización</label>
-                        <input 
+                        <input
                           type="text"
-                          placeholder="Ej. 2023" 
-                          className="w-full rounded-lg border-slate-200 text-sm h-10 focus:ring-primary focus:border-primary" 
-                          value={cert.date} 
-                          onChange={e => updateItem('certifications', cert.id, { date: e.target.value })} 
+                          placeholder="Ej. 2023"
+                          className="w-full rounded-lg border-slate-200 text-sm h-10 focus:ring-primary focus:border-primary"
+                          value={cert.date}
+                          onChange={e => updateItem('certifications', cert.id, { date: e.target.value })}
                         />
                       </div>
                     </div>
@@ -355,16 +391,16 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
             {activeSection === 'projects' && (
               <section className="space-y-6 animate-in fade-in">
                 <div className="flex justify-between items-end">
-                   <div>
+                  <div>
                     <h2 className="text-2xl font-black text-slate-900">Proyectos Destacados</h2>
                     <p className="text-slate-500 text-sm">Muestra proyectos personales, freelancing o iniciativas clave.</p>
-                   </div>
-                   <button 
+                  </div>
+                  <button
                     onClick={() => addItem('projects', { id: Date.now().toString(), name: '', description: '', link: '' })}
                     className="h-10 px-4 bg-white border border-primary text-primary font-bold rounded-xl text-xs flex items-center gap-2 hover:bg-primary/5"
-                   >
+                  >
                     <span className="material-symbols-outlined">add</span> Añadir Proyecto
-                   </button>
+                  </button>
                 </div>
                 <div className="space-y-4">
                   {data.projects.map(project => (
@@ -402,21 +438,21 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
 
         {/* Live Preview Panel */}
         <aside className="hidden xl:flex w-[600px] bg-slate-200 border-l flex-col">
-           <div className="h-12 bg-white/80 backdrop-blur border-b flex items-center justify-between px-6 shrink-0">
-             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-               <span className="material-symbols-outlined text-[16px]">visibility</span> Vista Previa
-             </span>
-             <div className="flex gap-2 items-center">
-                <span className="size-2 rounded-full bg-green-500"></span>
-                <span className="text-[10px] font-bold text-green-700">Modo Edición Real-Time</span>
-             </div>
-           </div>
-           <div className="flex-1 overflow-y-auto p-12 flex justify-center custom-scroll">
-              <CVPreview data={data} scale={0.65} />
-           </div>
+          <div className="h-12 bg-white/80 backdrop-blur border-b flex items-center justify-between px-6 shrink-0">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px]">visibility</span> Vista Previa
+            </span>
+            <div className="flex gap-2 items-center">
+              <span className="size-2 rounded-full bg-green-500"></span>
+              <span className="text-[10px] font-bold text-green-700">Modo Edición Real-Time</span>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-12 flex justify-center custom-scroll">
+            <CVPreview data={data} scale={0.65} />
+          </div>
         </aside>
       </div>
-      
+
       <AIChatPanel currentCV={data} />
     </div>
   );

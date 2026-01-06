@@ -10,7 +10,7 @@ interface AIChatPanelProps {
 
 const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<{role: 'ai' | 'user', text: string}[]>([
+  const [messages, setMessages] = useState<{ role: 'ai' | 'user', text: string }[]>([
     { role: 'ai', text: '¡Hola! Soy tu asistente de carrera. ¿En qué puedo ayudarte hoy con tu CV?' }
   ]);
   const [input, setInput] = useState('');
@@ -30,7 +30,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement
 
   if (!isOpen) {
     return (
-      <button 
+      <button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-6 right-6 size-14 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform z-50"
       >
@@ -38,6 +38,31 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement
       </button>
     );
   }
+
+  const formatMessage = (text: string) => {
+    const paragraphs = text.split('\n\n');
+    return paragraphs.map((p, i) => {
+      if (p.includes('\n-') || p.includes('\n•')) {
+        const items = p.split('\n').filter(line => line.trim());
+        const title = items[0].match(/^[^-•]/) ? items.shift() : null;
+
+        return (
+          <div key={i} className="mb-3">
+            {title && <p className="font-semibold mb-1">{title}</p>}
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              {items.map((item, j) => (
+                <li key={j} className="text-sm">{item.replace(/^[-•]\s*/, '')}</li>
+              ))}
+            </ul>
+          </div>
+        );
+      }
+      const withBold = p.split(/\*\*(.*?)\*\*/g).map((part, j) =>
+        j % 2 === 1 ? <strong key={j}>{part}</strong> : part
+      );
+      return <p key={i} className="mb-2">{withBold}</p>;
+    });
+  };
 
   return (
     <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-white border rounded-2xl shadow-2xl flex flex-col z-50 animate-in slide-in-from-bottom-5">
@@ -53,8 +78,11 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement
       <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${m.role === 'user' ? 'bg-primary text-white rounded-br-none' : 'bg-gray-100 text-gray-800 rounded-bl-none'}`}>
-              {m.text}
+            <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${m.role === 'user'
+              ? 'bg-primary text-white rounded-br-none'
+              : 'bg-gray-100 text-gray-800 rounded-bl-none'
+              }`}>
+              {m.role === 'ai' ? formatMessage(m.text) : m.text}
             </div>
           </div>
         ))}
@@ -66,8 +94,8 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement
       </div>
       <div className="p-4 border-t">
         <div className="flex gap-2">
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}

@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CVData, Experience, Education, Skill, Language, Certification, Project } from '../types';
+import { CVData, Experience, Education, Skill, Language, Certification, Project, AIAction } from '../types';
 import CVPreview from '../components/CVPreview';
 import AIChatPanel from '../components/AIChatPanel';
 import { optimizeSummary } from '../services/geminiService';
@@ -52,6 +51,29 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
     setTimeout(() => {
       window.print();
     }, 100);
+  };
+
+  const handleAIAction = (action: AIAction) => {
+    console.log("Executing AI Action:", action);
+    switch (action.type) {
+      case 'create':
+        // Ensure ID
+        const newItem = { ...action.data, id: action.data.id || Date.now().toString() };
+        addItem(action.section as any, newItem);
+        break;
+      case 'update':
+        if (action.section === 'personal') {
+          handleUpdate({ personal: { ...data.personal, ...action.data } });
+        } else if (action.id) {
+          updateItem(action.section as any, action.id, action.data);
+        }
+        break;
+      case 'delete':
+        if (action.id) {
+          removeItem(action.section as any, action.id);
+        }
+        break;
+    }
   };
 
   const navItems = [
@@ -453,7 +475,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
         </aside>
       </div>
 
-      <AIChatPanel currentCV={data} />
+      <AIChatPanel currentCV={data} onAction={handleAIAction} />
     </div>
   );
 };

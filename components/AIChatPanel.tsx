@@ -1,20 +1,90 @@
-
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { chatWithAI } from '../services/geminiService';
-import { CVData } from '../types';
+import { CVData, AIAction } from '../types';
 
 interface AIChatPanelProps {
   currentCV: CVData;
   onApplyImprovement?: (suggestion: string) => void;
+  onAction?: (action: AIAction) => void;
 }
 
-const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement }) => {
+const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement, onAction }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{ role: 'ai' | 'user', text: string }[]>([
     { role: 'ai', text: '¡Hola! Soy tu asistente de carrera. ¿En qué puedo ayudarte hoy con tu CV?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
+
+
+  useEffect(() => {
+    // Inicializar reconocimiento de voz
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false; // Cambiado a false
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'es-ES';
+
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          }
+        }
+
+        if (finalTranscript) {
+          setInput(prev => prev + finalTranscript + ' ');
+        }
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error('Error de reconocimiento:', event.error);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current && isListening) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, []); // Dependencias vacías
+
+  const toggleVoiceInput = () => {
+    if (!recognitionRef.current) {
+      alert('Tu navegador no soporta reconocimiento de voz');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (error) {
+        console.error('Error al iniciar reconocimiento:', error);
+        setIsListening(false);
+      }
+    }
+  };
+
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -24,7 +94,13 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement
     setIsLoading(true);
 
     const response = await chatWithAI(userMsg, currentCV);
-    setMessages(prev => [...prev, { role: 'ai', text: response }]);
+    setMessages(prev => [...prev, { role: 'ai', text: response.message }]);
+
+    if (response.action && onAction) {
+      console.log("Acción del agente:", response.action);
+      onAction(response.action);
+    }
+
     setIsLoading(false);
   };
 
@@ -91,6 +167,7 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement
             <div className="bg-gray-100 p-3 rounded-2xl animate-pulse text-xs">Gemini está pensando...</div>
           </div>
         )}
+        <div ref={messagesEndRef} />
       </div>
       <div className="p-4 border-t">
         <div className="flex gap-2">
@@ -102,6 +179,18 @@ const AIChatPanel: React.FC<AIChatPanelProps> = ({ currentCV, onApplyImprovement
             placeholder="Pide un cambio o consejo..."
             className="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
           />
+          <button
+            onClick={toggleVoiceInput}
+            className={`p-2 rounded-lg transition-colors ${isListening
+              ? 'bg-red-500 text-white animate-pulse'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            title={isListening ? 'Detener grabación' : 'Hablar'}
+          >
+            <span className="material-symbols-outlined">
+              {isListening ? 'mic' : 'mic_none'}
+            </span>
+          </button>
           <button onClick={handleSend} className="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover">
             <span className="material-symbols-outlined">send</span>
           </button>

@@ -20,36 +20,70 @@ export const optimizeSummary = async (summary: string, roleGoal: string): Promis
   }
 };
 
-export const chatWithAI = async (message: string, currentCV: CVData): Promise<string> => {
+export const chatWithAI = async (message: string, currentCV: CVData): Promise<{ message: string, action?: any }> => {
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview',
+      model: 'gemini-2.0-flash-exp', // Use a faster/smarter model if available, or fallback
       contents: [
-        { text: `CV ACTUAL:\n${JSON.stringify(currentCV, null, 2)}\n\nUSUARIO: ${message}` }
+        { text: `CONTEXTO DEL CV ACTUAL (Referencia para IDs y datos):\n${JSON.stringify(currentCV)}\n\nUSUARIO: ${message}` }
       ],
       config: {
-        systemInstruction: `Eres un experto en redacción de CVs. Responde en español peruano profesional.
+        systemInstruction: `Eres un asistente agente experto en CVs (CV IA PRO). Tu objetivo es ayudar al usuario a mejorar su currículum y realizar cambios directamente si te lo piden.
+        
+        MODOS DE RESPUESTA:
+        1. Si el usuario pide AGREGAR, EDITAR o ELIMINAR información (ej: "Agrega inglés avanzado", "Borra el proyecto X", "Cambia mi teléfono a 999..."), DEBES devolver un JSON estrictamente con este formato:
+        {
+          "message": "Texto confirmando la acción...",
+          "action": {
+             "type": "create" | "update" | "delete",
+             "section": "personal" | "experience" | "education" | "skills" | "languages" | "certifications" | "projects",
+             "data": { ... objeto con los datos a insertar/actualizar ... },
+             "id": "string" (ID del elemento a editar/borrar. Búscalo en el Contexto del CV. Para 'create' ignora esto o usa null)
+          }
+        }
 
-FORMATO DE RESPUESTA:
-- Usa **negritas** para conceptos clave
-- Separa ideas con saltos de línea dobles
-- Si sugieres múltiples puntos, usa listas con guiones (-)
-- Sé breve, claro y conciso
+        2. Para consultas generales, consejos o saludos, responde solo con TEXTO plano (sin JSON), usando formato Markdown amable y profesional.
+        
+        REGLAS PARA ACCIONES:
+        - Para 'create': 'data' debe tener los campos del tipo correspondiente (ej: { name: 'Inglés', level: 'Avanzado' }). Genera ID temporal si es necesario o deja que el frontend lo haga.
+        - Para 'update': Debes encontrar el ID correcto en el JSON del CV provisto. Si no estás seguro, pregunta antes de actuar.
+        - Para 'delete': Solo necesitas el ID y el tipo de sección.
+        - Para 'personal': Sección única. type='update', section='personal', data={campo: valor}.
 
-Ejemplo:
-Para mejorar tu perfil profesional:
-
-- Añade logros cuantificables (ej: "Aumenté ventas 30%")
-- Especifica tecnologías dominadas
-- Usa verbos de acción al inicio
-
-¿Quieres que te ayude con alguna sección específica?`,
+        IMPORTANTE: Si respondes con JSON, NO uses bloques de código (\`\`\`json), envía el JSON puro.`,
       },
     });
-    return response.text || "No pude procesar tu solicitud.";
+
+    let text = response.text || '';
+
+    // Limpiar bloques de código markdown si existen (ej: ```json ... ```)
+    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (jsonMatch) {
+      text = jsonMatch[1];
+    }
+
+    // Intentar encontrar el objeto JSON principal
+    const firstOpen = text.indexOf('{');
+    const lastClose = text.lastIndexOf('}');
+
+    if (firstOpen !== -1 && lastClose !== -1 && lastClose > firstOpen) {
+      const jsonCandidate = text.substring(firstOpen, lastClose + 1);
+      try {
+        const parsed = JSON.parse(jsonCandidate);
+        // Validar que tenga la estructura mínima esperada
+        if (parsed.message || parsed.action) {
+          return { message: parsed.message || "Acción realizada", action: parsed.action };
+        }
+      } catch (e) {
+        console.warn("Error parsing extracted JSON:", e);
+      }
+    }
+
+    return { message: text };
+
   } catch (error) {
-    console.error("Error:", error);
-    return "Error al conectar con el asistente.";
+    console.error("Gemini chat error:", error);
+    return { message: "Ocurrió un error al conectar con el asistente inteligente." };
   }
 };
 

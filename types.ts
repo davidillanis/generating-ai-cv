@@ -87,3 +87,15 @@ export interface CVData {
   certifications: Certification[];
   projects: Project[];
 }
+
+export interface AIAction {
+  type: 'create' | 'update' | 'delete';
+  section: 'personal' | 'experience' | 'education' | 'skills' | 'languages' | 'certifications' | 'projects';
+  data?: any; // Para create/update
+  id?: string; // Para update/delete
+}
+
+export interface AIActionResponse {
+  message: string;
+  action?: AIAction;
+}

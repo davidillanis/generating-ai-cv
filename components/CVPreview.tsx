@@ -29,7 +29,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
                 {personal.linkedin && <span>• <span className="underline">{personal.linkedin}</span></span>}
               </div>
             </header>
-            
+
             <section>
               <h2 className="text-xs font-bold uppercase border-b border-black mb-2">Resumen Profesional</h2>
               <p className="text-[11px] text-justify leading-relaxed">{personal.profileSummary}</p>
@@ -168,8 +168,8 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
                       <span className="text-slate-400">{l.level}</span>
                     </div>
                     <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-primary" 
+                      <div
+                        className="h-full bg-primary"
                         style={{ width: l.level === 'Nativo' ? '100%' : l.level === 'Avanzado' ? '85%' : l.level === 'Intermedio' ? '60%' : '30%' }}
                       ></div>
                     </div>
@@ -193,7 +193,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
             </aside>
             <main className="flex-1 p-10 space-y-8">
               <header className="space-y-2">
-                <h1 className="text-4xl font-black text-slate-900 leading-tight">{personal.firstName}<br/>{personal.lastName}</h1>
+                <h1 className="text-4xl font-black text-slate-900 leading-tight">{personal.firstName}<br />{personal.lastName}</h1>
                 <div className="h-1.5 w-12 bg-primary rounded-full"></div>
               </header>
 
@@ -332,8 +332,8 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
   };
 
   return (
-    <div 
-      className="a4-paper overflow-hidden shadow-2xl origin-top" 
+    <div
+      className="a4-paper overflow-hidden shadow-2xl origin-top"
       style={{ transform: `scale(${scale})` }}
     >
       {renderTemplate()}

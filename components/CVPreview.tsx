@@ -118,6 +118,20 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
         return (
           <div className="flex min-h-full bg-white">
             <aside className="w-[240px] bg-[#f8fafc] border-r p-8 flex flex-col gap-8">
+              {personal.photoUrl && (
+                <div className="flex justify-center mb-2">
+                  <img
+                    src={personal.photoUrl}
+                    alt={`${personal.firstName} ${personal.lastName}`}
+                    className="size-32 rounded-full object-cover border-4 border-white shadow-md"
+                    onError={(e) => {
+                      // Hide image on error or show placeholder
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+
               <div className="space-y-4">
                 <h3 className="text-[10px] font-black uppercase text-primary tracking-widest">Contacto</h3>
                 <div className="space-y-2 text-[11px] text-slate-600">

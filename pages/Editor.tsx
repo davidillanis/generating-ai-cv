@@ -202,6 +202,16 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                     <input className="w-full rounded-xl border-slate-200 h-11 text-sm" value={data.personal.country} onChange={e => handlePersonalChange('country', e.target.value)} />
                   </div>
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase">URL de Foto (Opcional)</label>
+                  <input
+                    className="w-full rounded-xl border-slate-200 h-11 text-sm"
+                    placeholder="https://..."
+                    value={data.personal.photoUrl || ''}
+                    onChange={e => handlePersonalChange('photoUrl', e.target.value)}
+                  />
+                  <p className="text-[10px] text-slate-400">La foto solo se mostrará en la plantilla "Modern Blue".</p>
+                </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumen Profesional</label>

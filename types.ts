@@ -70,6 +70,7 @@ export interface PersonalData {
   linkedin: string;
   website: string;
   profileSummary: string;
+  photoUrl?: string; // Optional URL for profile picture
 }
 
 export interface CVData {

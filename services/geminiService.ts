@@ -4,13 +4,13 @@ import { CVData, CVTemplateType, FormalityLevel } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
-export const optimizeSummary = async (summary: string, roleGoal: string): Promise<string> => {
+export const optimizeSummary = async (summary: string, roleGoal: string, titleText: string = "resumen"): Promise<string> => {
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Optimiza este resumen profesional para un puesto de ${roleGoal} en Perú. Hazlo conciso (máximo 4 líneas), profesional y directo. Resumen original: "${summary}"`,
+      contents: `Optimiza este ${titleText} para un puesto de ${roleGoal} en Perú. Hazlo breve, claro y conciso (maximo 4 líneas), profesional y directo. ${titleText} original: "${summary}"`,
       config: {
-        systemInstruction: "Eres un experto reclutador especializado en el mercado laboral peruano y latinoamericano.",
+        systemInstruction: `Eres un experto reclutador especializado en el mercado laboral peruano y latinoamericano con un legunaje Natural y accesible, profesional, moderademente tecnico, orientado al valor, centrado en competencias generales y un poco simple en resumen un leguaje equilibrado. Solo responde con el ${titleText} optimizado.`,
       },
     });
     return response.text || summary;

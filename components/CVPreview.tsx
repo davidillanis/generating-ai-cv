@@ -17,9 +17,9 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
     switch (templateType) {
       case CVTemplateType.HARVARD:
         return (
-          <div className="p-12 font-serif text-[#1a1a1a] space-y-5">
-            <header className="text-center border-b-2 border-black pb-4">
-              <h1 className="text-3xl font-bold uppercase tracking-tighter">{personal.firstName} {personal.lastName}</h1>
+          <div className="p-4 font-serif text-[#1a1a1a] space-y-5" style={{ marginTop: '-1rem' }}>
+            <header className="text-center">
+              <h1 className="text-1xl font-bold uppercase tracking-tighter">{personal.firstName} {personal.lastName}</h1>
               <div className="text-[11px] mt-2 space-x-2">
                 <span>{personal.city}, {personal.country}</span>
                 <span>•</span>
@@ -31,12 +31,11 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
             </header>
 
             <section>
-              <h2 className="text-xs font-bold uppercase border-b border-black mb-2">Resumen Profesional</h2>
+              <h2 className="text-xs font-bold border-b border-black mb-2 text-center">Resumen Profesional</h2>
               <p className="text-[11px] text-justify leading-relaxed">{personal.profileSummary}</p>
             </section>
-
             <section>
-              <h2 className="text-xs font-bold uppercase border-b border-black mb-3">Experiencia Profesional</h2>
+              <h2 className="text-xs font-bold border-b border-black mb-3 text-center">Experiencia Profesional</h2>
               {experience.map(exp => (
                 <div key={exp.id} className="mb-4">
                   <div className="flex justify-between font-bold text-[11px]">
@@ -54,7 +53,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
 
             {projects.length > 0 && (
               <section>
-                <h2 className="text-xs font-bold uppercase border-b border-black mb-2">Proyectos Destacados</h2>
+                <h2 className="text-xs font-bold border-b border-black mb-2 text-center">Proyectos Destacados</h2>
                 {projects.map(p => (
                   <div key={p.id} className="mb-3">
                     <div className="flex justify-between font-bold text-[11px]">
@@ -68,7 +67,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
             )}
 
             <section>
-              <h2 className="text-xs font-bold uppercase border-b border-black mb-2">Educación</h2>
+              <h2 className="text-xs font-bold border-b border-black mb-2 text-center">Educación</h2>
               {education.map(edu => (
                 <div key={edu.id} className="mb-2">
                   <div className="flex justify-between font-bold text-[11px]">
@@ -82,7 +81,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
 
             {certifications.length > 0 && (
               <section>
-                <h2 className="text-xs font-bold uppercase border-b border-black mb-2">Certificaciones</h2>
+                <h2 className="text-xs font-bold border-b border-black mb-2 text-center">Certificaciones</h2>
                 <ul className="list-disc ml-4 space-y-0.5">
                   {certifications.map(c => (
                     <li key={c.id} className="text-[11px]">
@@ -95,7 +94,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
 
             <div className="grid grid-cols-2 gap-8">
               <section>
-                <h2 className="text-xs font-bold uppercase border-b border-black mb-2">Habilidades</h2>
+                <h2 className="text-xs font-bold border-b border-black mb-2">Habilidades</h2>
                 <p className="text-[10px] leading-relaxed">
                   <span className="font-bold">Técnicas:</span> {technicalSkills.map(s => s.name).join(', ')}
                 </p>
@@ -104,7 +103,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
                 </p>
               </section>
               <section>
-                <h2 className="text-xs font-bold uppercase border-b border-black mb-2">Idiomas</h2>
+                <h2 className="text-xs font-bold border-b border-black mb-2">Idiomas</h2>
                 <div className="flex flex-wrap gap-x-3 gap-y-1">
                   {languages.map(l => (
                     <span key={l.id} className="text-[10px]"><span className="font-bold">{l.name}:</span> {l.level}</span>

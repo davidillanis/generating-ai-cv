@@ -39,10 +39,10 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
     });
   };
 
-  const handleOptimizeProfile = async () => {
+  const handleOptimizeProfile = async (sumary: string, personalChange: string, titleText: string = "resumen") => {
     setIsOptimizing(true);
-    const optimized = await optimizeSummary(data.personal.profileSummary, data.experience[0]?.role || "Profesional");
-    handlePersonalChange('profileSummary', optimized);
+    const optimized = await optimizeSummary(sumary, data.experience[0]?.role || "Profesional", titleText);
+    handlePersonalChange(personalChange, optimized);
     setIsOptimizing(false);
   };
 
@@ -175,7 +175,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                   <div className="flex justify-between items-center">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumen Profesional</label>
                     <button
-                      onClick={handleOptimizeProfile}
+                      onClick={() => handleOptimizeProfile(data.personal.profileSummary, "profileSummary", "resumen profesional")}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-[10px] font-bold hover:bg-primary hover:text-white transition-all disabled:opacity-50"
                       disabled={isOptimizing}
                     >

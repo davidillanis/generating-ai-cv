@@ -2,7 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CVData, CVTemplateType, FormalityLevel } from '../types';
-import { parseCVDocument } from '../services/geminiService';
+import { parseCVDocument, generateCVFromPrompt } from '../services/geminiService';
 
 import { useAuth } from '../contexts/AuthContext';
 
@@ -19,6 +19,9 @@ const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate, onDelete
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [promptText, setPromptText] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleEdit = (id: string) => {
     onSelect(id);
@@ -74,112 +77,189 @@ const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate, onDelete
     fileInputRef.current?.click();
   };
 
+  const handleGenerateFromPrompt = async () => {
+    if (!promptText.trim()) return;
+
+    setIsGenerating(true);
+    setUploadStatus('Generando CV con IA...');
+
+    try {
+      const generatedData = await generateCVFromPrompt(promptText);
+      await onCreate(generatedData);
+      setUploadStatus('¡CV Generado!');
+      setTimeout(() => {
+        navigate('/editor');
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setUploadStatus('Error al generar el CV.');
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-       <header className="px-6 py-4 bg-white border-b flex justify-between items-center">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <span className="material-symbols-outlined text-primary">smart_toy</span>
-            <span className="font-black text-lg">CV IA PRO</span>
+      <header className="px-6 py-4 bg-white border-b flex justify-between items-center">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+          <span className="material-symbols-outlined text-primary">smart_toy</span>
+          <span className="font-black text-lg">CV IA PRO</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-medium text-slate-600 hidden md:block">{user?.email}</span>
+          <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs uppercase">
+            {user?.email?.charAt(0) || 'U'}
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-600 hidden md:block">{user?.email}</span>
-            <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs uppercase">
-              {user?.email?.charAt(0) || 'U'}
-            </div>
-            <button 
-              onClick={() => signOut()} 
-              className="text-sm text-slate-500 hover:text-red-500 font-medium ml-2"
+          <button
+            onClick={() => signOut()}
+            className="text-sm text-slate-500 hover:text-red-500 font-medium ml-2"
+          >
+            Salir
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-6xl mx-auto w-full px-6 py-10 space-y-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-black text-slate-900">Mis Currículums</h1>
+            <p className="text-slate-500">Administra y optimiza tus versiones profesionales.</p>
+          </div>
+          <div className="flex gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+              accept=".pdf,.doc,.docx"
+            />
+            <button
+              disabled={isUploading}
+              onClick={triggerUpload}
+              className="bg-white border border-primary text-primary h-12 px-6 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:bg-primary/5 transition-all disabled:opacity-50"
             >
-              Salir
+              <span className="material-symbols-outlined">{isUploading ? 'sync' : 'upload_file'}</span>
+              {isUploading ? uploadStatus : 'Importar CV (PDF)'}
+            </button>
+            <button
+              onClick={() => setIsPromptModalOpen(true)}
+              disabled={isUploading || isGenerating}
+              className="bg-white border border-purple-500 text-purple-600 h-12 px-6 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:bg-purple-50 transition-all disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined">auto_awesome</span>
+              Generar con IA
+            </button>
+            <button
+              disabled={isUploading}
+              onClick={handleCreateNew}
+              className="bg-primary text-white h-12 px-6 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-primary-hover transition-all disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined">add</span> Nuevo CV
             </button>
           </div>
-       </header>
+        </div>
 
-       <main className="max-w-6xl mx-auto w-full px-6 py-10 space-y-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-             <div>
-                <h1 className="text-3xl font-black text-slate-900">Mis Currículums</h1>
-                <p className="text-slate-500">Administra y optimiza tus versiones profesionales.</p>
-             </div>
-             <div className="flex gap-3">
-               <input 
-                 type="file" 
-                 ref={fileInputRef} 
-                 onChange={handleFileChange} 
-                 className="hidden" 
-                 accept=".pdf,.doc,.docx" 
-               />
-               <button 
-                  disabled={isUploading}
-                  onClick={triggerUpload}
-                  className="bg-white border border-primary text-primary h-12 px-6 rounded-xl font-bold flex items-center gap-2 shadow-sm hover:bg-primary/5 transition-all disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined">{isUploading ? 'sync' : 'upload_file'}</span> 
-                  {isUploading ? uploadStatus : 'Importar CV (PDF)'}
-               </button>
-               <button 
-                  disabled={isUploading}
-                  onClick={handleCreateNew}
-                  className="bg-primary text-white h-12 px-6 rounded-xl font-bold flex items-center gap-2 shadow-lg hover:bg-primary-hover transition-all disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined">add</span> Nuevo CV
-               </button>
-             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {cvs.map(cv => (
-              <div 
-                key={cv.id}
-                className="group bg-white rounded-2xl border p-5 hover:shadow-xl transition-all cursor-pointer relative"
-                onClick={() => handleEdit(cv.id)}
-              >
-                <div className="aspect-[210/297] bg-slate-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                   <span className="material-symbols-outlined text-6xl text-slate-300">description</span>
-                   <div className="absolute top-8 right-8 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">ATS {Math.floor(Math.random() * 20) + 75}%</div>
-                </div>
-                <h3 className="font-bold text-lg truncate">{cv.title}</h3>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs text-slate-400">Modificado: {new Date(cv.lastModified).toLocaleDateString()}</span>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1.5 hover:bg-slate-100 rounded text-slate-500"><span className="material-symbols-outlined text-sm">content_copy</span></button>
-                    <button onClick={(e) => handleDelete(e, cv.id)} className="p-1.5 hover:bg-red-50 rounded text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button>
-                  </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {cvs.map(cv => (
+            <div
+              key={cv.id}
+              className="group bg-white rounded-2xl border p-5 hover:shadow-xl transition-all cursor-pointer relative"
+              onClick={() => handleEdit(cv.id)}
+            >
+              <div className="aspect-[210/297] bg-slate-100 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                <span className="material-symbols-outlined text-6xl text-slate-300">description</span>
+                <div className="absolute top-8 right-8 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow">ATS {Math.floor(Math.random() * 20) + 75}%</div>
+              </div>
+              <h3 className="font-bold text-lg truncate">{cv.title}</h3>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-xs text-slate-400">Modificado: {new Date(cv.lastModified).toLocaleDateString()}</span>
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button className="p-1.5 hover:bg-slate-100 rounded text-slate-500"><span className="material-symbols-outlined text-sm">content_copy</span></button>
+                  <button onClick={(e) => handleDelete(e, cv.id)} className="p-1.5 hover:bg-red-50 rounded text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button>
                 </div>
               </div>
-            ))}
-            <div 
-              onClick={isUploading ? undefined : handleCreateNew}
-              className={`border-2 border-dashed rounded-2xl flex flex-col items-center justify-center h-[400px] text-slate-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <span className="material-symbols-outlined text-5xl mb-4">post_add</span>
-              <span className="font-bold">Crear uno nuevo</span>
+            </div>
+          ))}
+          <div
+            onClick={isUploading ? undefined : handleCreateNew}
+            className={`border-2 border-dashed rounded-2xl flex flex-col items-center justify-center h-[400px] text-slate-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <span className="material-symbols-outlined text-5xl mb-4">post_add</span>
+            <span className="font-bold">Crear uno nuevo</span>
+          </div>
+        </div>
+      </main>
+
+      {isUploading && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+          <div className="bg-white rounded-3xl p-10 max-w-sm w-full shadow-2xl flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="relative">
+              <div className="size-20 border-4 border-slate-100 border-t-primary rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary text-3xl">smart_toy</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-black">Analizando tu CV</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">Nuestra IA está extrayendo tu información profesional para que no tengas que escribirla manualmente.</p>
+            </div>
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div className="bg-primary h-full animate-[progress_2s_ease-in-out_infinite]" style={{ width: '30%' }}></div>
+            </div>
+            <p className="text-primary font-bold text-xs uppercase tracking-widest">{uploadStatus}</p>
+          </div>
+        </div>
+      )}
+
+      {isPromptModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl flex flex-col space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-purple-600">auto_awesome</span> Generar CV con IA
+                </h3>
+                <p className="text-slate-500 text-sm mt-1">Describe tu perfil y la IA creará un CV base por ti.</p>
+              </div>
+              <button onClick={() => setIsPromptModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <textarea
+              className="w-full h-40 rounded-xl border-slate-200 p-4 text-sm focus:ring-purple-500 focus:border-purple-500 resize-none"
+              placeholder="Ej: Soy desarrollador Frontend con 3 años de experiencia en React y TypeScript. He trabajado en startups fintech y liderado equipos pequeños. Tengo un nivel intermedio de inglés..."
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              disabled={isGenerating}
+            />
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsPromptModalOpen(false)}
+                className="px-4 py-2 text-slate-600 font-bold text-sm hover:bg-slate-100 rounded-lg transition-colors"
+                disabled={isGenerating}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleGenerateFromPrompt}
+                disabled={!promptText.trim() || isGenerating}
+                className="px-6 py-2 bg-purple-600 text-white font-bold text-sm rounded-lg hover:bg-purple-700 shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                {isGenerating ? (
+                  <>
+                    <span className="animate-spin material-symbols-outlined text-[16px]">sync</span> Generando...
+                  </>
+                ) : (
+                  <>Generar CV <span className="material-symbols-outlined text-[16px]">arrow_forward</span></>
+                )}
+              </button>
             </div>
           </div>
-       </main>
+        </div>
+      )}
 
-       {isUploading && (
-         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
-            <div className="bg-white rounded-3xl p-10 max-w-sm w-full shadow-2xl flex flex-col items-center text-center space-y-6 animate-in zoom-in-95 duration-200">
-               <div className="relative">
-                  <div className="size-20 border-4 border-slate-100 border-t-primary rounded-full animate-spin"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary text-3xl">smart_toy</span>
-                  </div>
-               </div>
-               <div className="space-y-2">
-                 <h3 className="text-xl font-black">Analizando tu CV</h3>
-                 <p className="text-slate-500 text-sm leading-relaxed">Nuestra IA está extrayendo tu información profesional para que no tengas que escribirla manualmente.</p>
-               </div>
-               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full animate-[progress_2s_ease-in-out_infinite]" style={{width: '30%'}}></div>
-               </div>
-               <p className="text-primary font-bold text-xs uppercase tracking-widest">{uploadStatus}</p>
-            </div>
-         </div>
-       )}
-
-       <style>{`
+      <style>{`
           @keyframes progress {
             0% { transform: translateX(-100%); }
             100% { transform: translateX(300%); }

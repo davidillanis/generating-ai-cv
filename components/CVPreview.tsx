@@ -17,7 +17,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
     switch (templateType) {
       case CVTemplateType.HARVARD:
         return (
-          <div className="p-4 font-serif text-[#1a1a1a] space-y-5" style={{ marginTop: '-1rem' }}>
+          <div className="p-12 font-serif text-[#1a1a1a] space-y-2" style={{ marginTop: '-1rem' }}>
             <header className="text-center">
               <h1 className="text-1xl font-bold uppercase tracking-tighter">{personal.firstName} {personal.lastName}</h1>
               <div className="text-[11px] mt-2 space-x-2">
@@ -120,7 +120,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
             <aside className="w-[240px] bg-[#f8fafc] border-r p-8 flex flex-col gap-8">
               <div className="space-y-4">
                 <h3 className="text-[10px] font-black uppercase text-primary tracking-widest">Contacto</h3>
-                <div className="space-y-3 text-[11px] text-slate-600">
+                <div className="space-y-2 text-[11px] text-slate-600">
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[14px]">mail</span>
                     <span className="truncate">{personal.email}</span>
@@ -190,18 +190,18 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
                 </div>
               )}
             </aside>
-            <main className="flex-1 p-10 space-y-8">
+            <main className="flex-1 p-10 space-y-6">
               <header className="space-y-2">
                 <h1 className="text-4xl font-black text-slate-900 leading-tight">{personal.firstName}<br />{personal.lastName}</h1>
                 <div className="h-1.5 w-12 bg-primary rounded-full"></div>
               </header>
 
-              <section className="space-y-3">
+              <section className="space-y-1">
                 <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Perfil</h2>
                 <p className="text-[12px] leading-relaxed text-slate-700 text-justify">{personal.profileSummary}</p>
               </section>
 
-              <section className="space-y-6">
+              <section className="space-y-2">
                 <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Experiencia</h2>
                 {experience.map(exp => (
                   <div key={exp.id} className="relative pl-6 border-l-2 border-slate-100 last:border-0 pb-2">
@@ -217,7 +217,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
               </section>
 
               {projects.length > 0 && (
-                <section className="space-y-6">
+                <section className="space-y-2">
                   <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Proyectos</h2>
                   {projects.map(p => (
                     <div key={p.id} className="space-y-1">
@@ -232,7 +232,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
               )}
 
               {education.length > 0 && (
-                <section className="space-y-4">
+                <section className="space-y-2">
                   <h2 className="text-xs font-black uppercase tracking-widest text-slate-400">Formación</h2>
                   {education.map(edu => (
                     <div key={edu.id}>
@@ -249,7 +249,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
       case CVTemplateType.ATS:
       default:
         return (
-          <div className="p-12 space-y-5 font-sans text-[#222]">
+          <div className="p-14 space-y-5 font-sans text-[#222]" style={{ marginTop: '-0.5rem' }}>
             <header className="text-center">
               <h1 className="text-2xl font-bold tracking-tight">{personal.firstName.toUpperCase()} {personal.lastName.toUpperCase()}</h1>
               <p className="text-xs mt-1">

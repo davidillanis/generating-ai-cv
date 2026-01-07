@@ -39,10 +39,41 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
     });
   };
 
-  const handleOptimizeProfile = async (sumary: string, personalChange: string, titleText: string = "resumen") => {
+  const handleOptimizeProfile = async (startText: string, sectionOrField: string, contentOrContext: string, numberLines: number, itemId?: string) => {
     setIsOptimizing(true);
-    const optimized = await optimizeSummary(sumary, data.experience[0]?.role || "Profesional", titleText);
-    handlePersonalChange(personalChange, optimized);
+
+    // Determine arguments based on usage logic to support both signatures
+    let textToOptimize = startText;
+    let instructionContext = contentOrContext;
+    let isSectionUpdate = false;
+
+    // Check if we are updating a specific section item (Experience or Projects)
+    // Heuristic: If sectionOrField is 'experience' or 'projects', the arguments are likely:
+    // arg1: Instruction/Context Title (e.g. "Logros...")
+    // arg2: Section Name
+    // arg3: Content to optimize
+    if (sectionOrField === 'experience' || sectionOrField === 'projects') {
+      isSectionUpdate = true;
+      textToOptimize = contentOrContext; // Content is 3rd arg
+      instructionContext = startText;    // Instruction is 1st arg
+    } else {
+      // Existing behavior for Profile Summary
+      // arg1: Content
+      // arg2: Field Name (personalChange)
+      // arg3: Context Title
+      textToOptimize = startText;
+      instructionContext = contentOrContext;
+    }
+
+    const role = data.experience[0]?.role || "Profesional";
+    const optimized = await optimizeSummary(textToOptimize, role, instructionContext, numberLines);
+
+    if (isSectionUpdate && itemId) {
+      updateItem(sectionOrField as keyof CVData, itemId, { description: optimized });
+    } else {
+      handlePersonalChange(sectionOrField, optimized);
+    }
+
     setIsOptimizing(false);
   };
 
@@ -175,7 +206,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                   <div className="flex justify-between items-center">
                     <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Resumen Profesional</label>
                     <button
-                      onClick={() => handleOptimizeProfile(data.personal.profileSummary, "profileSummary", "resumen profesional")}
+                      onClick={() => handleOptimizeProfile(data.personal.profileSummary, "profileSummary", "resumen profesional", 8)}
                       className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-[10px] font-bold hover:bg-primary hover:text-white transition-all disabled:opacity-50"
                       disabled={isOptimizing}
                     >
@@ -224,7 +255,20 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                           <input type="checkbox" checked={exp.current} onChange={e => updateItem('experience', exp.id, { current: e.target.checked })} className="rounded text-primary" /> Actualmente aquí
                         </label>
                       </div>
-                      <textarea placeholder="Logros y responsabilidades..." className="w-full rounded-lg border-slate-200 text-sm h-28" value={exp.description} onChange={e => updateItem('experience', exp.id, { description: e.target.value })} />
+                      <div className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Logros y Responsabilidades</label>
+                          <button
+                            onClick={() => handleOptimizeProfile("Logros y responsabilidades", "experience", exp.description + " " + exp.role + " " + exp.company, 4, exp.id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-[10px] font-bold hover:bg-primary hover:text-white transition-all disabled:opacity-50"
+                            disabled={isOptimizing}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                            {isOptimizing ? 'Optimizando...' : 'Mejorar con IA'}
+                          </button>
+                        </div>
+                        <textarea placeholder="Logros y responsabilidades..." className="w-full rounded-lg border-slate-200 text-sm h-28" value={exp.description} onChange={e => updateItem('experience', exp.id, { description: e.target.value })} />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -441,7 +485,17 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase">Descripción</label>
+                        <div className="flex justify-between items-center">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase">Descripción</label>
+                          <button
+                            onClick={() => handleOptimizeProfile("Descripción del proyecto", "projects", project.name + " " + project.description, 4, project.id)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-[10px] font-bold hover:bg-primary hover:text-white transition-all disabled:opacity-50"
+                            disabled={isOptimizing}
+                          >
+                            <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
+                            {isOptimizing ? 'Optimizando...' : 'Mejorar con IA'}
+                          </button>
+                        </div>
                         <textarea placeholder="Describe el impacto, tecnologías usadas y tu rol..." className="w-full rounded-lg border-slate-200 text-sm h-28" value={project.description} onChange={e => updateItem('projects', project.id, { description: e.target.value })} />
                       </div>
                     </div>
@@ -469,7 +523,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
               <span className="text-[10px] font-bold text-green-700">Modo Edición Real-Time</span>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-12 flex justify-center custom-scroll">
+          <div className="flex-1 overflow-y-auto flex justify-center custom-scroll">
             <CVPreview data={data} scale={0.65} />
           </div>
         </aside>

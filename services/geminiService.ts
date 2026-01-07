@@ -4,11 +4,11 @@ import { CVData, CVTemplateType, FormalityLevel } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
-export const optimizeSummary = async (summary: string, roleGoal: string, titleText: string = "resumen"): Promise<string> => {
+export const optimizeSummary = async (summary: string, roleGoal: string, titleText: string = "resumen", numberLines: number = 4): Promise<string> => {
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `Optimiza este ${titleText} para un puesto de ${roleGoal} en Perú. Hazlo breve, claro y conciso (maximo 4 líneas), profesional y directo. ${titleText} original: "${summary}"`,
+      contents: `Optimiza este ${titleText} para un puesto de ${roleGoal} en Perú. Hazlo breve, claro y conciso (maximo ${numberLines} líneas), profesional y directo. ${titleText} original: "${summary}"`,
       config: {
         systemInstruction: `Eres un experto reclutador especializado en el mercado laboral peruano y latinoamericano con un legunaje Natural y accesible, profesional, moderademente tecnico, orientado al valor, centrado en competencias generales y un poco simple en resumen un leguaje equilibrado. Solo responde con el ${titleText} optimizado.`,
       },
@@ -195,6 +195,81 @@ export const parseCVDocument = async (base64Data: string, mimeType: string): Pro
     return parsed;
   } catch (error) {
     console.error("Error parsing CV document:", error);
+    throw error;
+  }
+}
+
+export const generateCVFromPrompt = async (prompt: string): Promise<Partial<CVData>> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: [
+        {
+          text: `Genera un currículum completo en formato JSON basado en la siguiente descripción del usuario: "${prompt}".
+        
+        Si faltan datos específicos en la descripción, INFIERE información realista y profesional coherente con el perfil descrito para completar TODOS los campos (experiencia, educación, habilidades, etc) no te inventes cosas. El objetivo es tener un CV base listo para editar.` }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        systemInstruction: `Eres un experto redactor de CVs. Tu tarea es generar una estructura JSON de currículum rica y detallada basada en una descripción breve.
+        
+        REGLAS:
+        1. INVENTA/RELLENA datos realistas si no se proporcionan explícitamente (fechas, nombres de empresas genéricos si es necesario, descripciones de tareas detalladas, títulos universitarios típicos para el rol).
+        2. Usa el idioma español por defecto.
+        
+        ESTRUCTURA JSON OBLIGATORIA (Sigue estrictamente este esquema):
+        {
+          "personal": {
+            "firstName": "string",
+            "lastName": "string",
+            "email": "string",
+            "phone": "string",
+            "city": "string",
+            "country": "string",
+            "profileSummary": "string (Un resumen profesional impactante de 3-4 líneas)"
+          },
+          "experience": [
+             {
+               "id": "string (timestamp único)",
+               "role": "string",
+               "company": "string",
+               "location": "string",
+               "startDate": "string (YYYY-MM)",
+               "endDate": "string (YYYY-MM o 'Presente')",
+               "current": boolean,
+               "description": "string (bullets points o párrafos detallados de logros)"
+             }
+          ],
+          "education": [
+             {
+               "id": "string",
+               "degree": "string",
+               "institution": "string",
+               "location": "string",
+               "startDate": "string",
+               "endDate": "string"
+             }
+          ],
+          "skills": [
+             { "id": "string", "name": "string", "type": "Technical" | "Soft" }
+          ],
+          "languages": [
+             { "id": "string", "name": "string", "level": "Básico" | "Intermedio" | "Avanzado" | "Nativo" }
+          ],
+          "certifications": [
+             { "id": "string", "name": "string", "issuer": "string", "date": "string" }
+          ],
+          "projects": [
+             { "id": "string", "name": "string", "description": "string", "link": "string" }
+          ]
+        }`,
+      },
+    });
+
+    const parsed = JSON.parse(response.text || '{}');
+    return parsed;
+  } catch (error) {
+    console.error("Error generating CV from prompt:", error);
     throw error;
   }
 }

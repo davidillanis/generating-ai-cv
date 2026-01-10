@@ -13,11 +13,20 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
   const technicalSkills = skills.filter(s => s.type === 'Technical');
   const softSkills = skills.filter(s => s.type === 'Soft');
 
+  // Custom Design Styles
+  const primaryColor = personal.design?.primaryColor || 'var(--primary)'; // Default to CSS variable if not set
+  const fontFamily = personal.design?.fontFamily || 'inherit';
+
+  const containerStyle = {
+    fontFamily: fontFamily !== 'inherit' ? fontFamily : undefined,
+    '--primary': primaryColor, // Override the CSS variable locally
+  } as React.CSSProperties;
+
   const renderTemplate = () => {
     switch (templateType) {
       case CVTemplateType.HARVARD:
         return (
-          <div className="p-12 font-serif text-[#1a1a1a] space-y-2" style={{ marginTop: '-1rem' }}>
+          <div className="p-12 font-serif text-[#1a1a1a] space-y-2" style={{ marginTop: '-1rem', ...containerStyle, fontFamily: fontFamily !== 'inherit' ? fontFamily : 'serif' }}>
             <header className="text-center">
               <h1 className="text-1xl font-bold uppercase tracking-tighter">{personal.firstName} {personal.lastName}</h1>
               <div className="text-[11px] mt-2 space-x-2">
@@ -116,7 +125,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
 
       case CVTemplateType.MODERN:
         return (
-          <div className="flex min-h-full bg-white">
+          <div className="flex min-h-full bg-white" style={containerStyle}>
             <aside className="w-[240px] bg-[#f8fafc] border-r p-8 flex flex-col gap-8">
               {personal.photoUrl && (
                 <div className="flex justify-center mb-2">
@@ -260,10 +269,157 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
           </div>
         );
 
+      case CVTemplateType.CUSTOM:
+        const config = data.customTemplate || {
+          id: 'temp',
+          name: 'Custom',
+          author: 'User',
+          isPublic: false,
+          styles: {
+            primaryColor: personal.design?.primaryColor || 'var(--primary)',
+            backgroundColor: '#ffffff',
+            fontFamily: personal.design?.fontFamily || 'inherit',
+            bodyColor: '#334155',
+            titleColor: '#0f172a'
+          },
+          layout: {
+            type: 'sidebar-left',
+            sidebarSections: ['personal', 'skills', 'languages', 'certifications'],
+            mainSections: ['profile', 'experience', 'education', 'projects']
+          }
+        };
+
+        const customContainerStyle = {
+          '--primary': config.styles.primaryColor,
+          fontFamily: config.styles.fontFamily,
+          backgroundColor: config.styles.backgroundColor,
+          color: config.styles.bodyColor,
+        } as React.CSSProperties;
+
+        const renderSection = (id: string) => {
+          switch (id) {
+            case 'personal':
+              return (
+                <div key={id} className="mb-6">
+                  {personal.photoUrl && (
+                    <img src={personal.photoUrl} alt="Profile" className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-white shadow-md" />
+                  )}
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2"><span className="material-symbols-outlined text-primary">mail</span> {personal.email}</div>
+                    <div className="flex items-center gap-2"><span className="material-symbols-outlined text-primary">call</span> {personal.phone}</div>
+                    <div className="flex items-center gap-2"><span className="material-symbols-outlined text-primary">location_on</span> {personal.city}, {personal.country}</div>
+                  </div>
+                </div>
+              );
+            case 'skills':
+              return (
+                <div key={id} className="mb-6">
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest mb-3 border-b border-primary/20 pb-1">Habilidades</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {skills.map(s => (
+                      <span key={s.id} className="px-2 py-1 bg-primary/10 text-primary rounded text-[10px] font-bold">{s.name}</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            case 'experience':
+              return (
+                <div key={id} className="mb-6">
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest mb-4 border-b border-primary/20 pb-1">Experiencia</h3>
+                  {experience.map(exp => (
+                    <div key={exp.id} className="mb-4">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <h4 className="font-bold text-slate-900">{exp.role}</h4>
+                        <span className="text-xs font-bold text-slate-400">{exp.startDate} - {exp.current ? 'Actual' : exp.endDate}</span>
+                      </div>
+                      <p className="text-xs text-primary font-medium mb-1">{exp.company} | {exp.location}</p>
+                      <p className="text-xs leading-relaxed whitespace-pre-line">{exp.description}</p>
+                    </div>
+                  ))}
+                </div>
+              );
+            // ... (I will implement a few key ones for brevity and robustness, expanding later if needed)
+            case 'education':
+              return (
+                <div key={id} className="mb-6">
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest mb-4 border-b border-primary/20 pb-1">Educación</h3>
+                  {education.map(edu => (
+                    <div key={edu.id} className="mb-2">
+                      <h4 className="font-bold">{edu.degree}</h4>
+                      <p className="text-xs text-slate-500">{edu.institution} | {edu.startDate} - {edu.endDate}</p>
+                    </div>
+                  ))}
+                </div>
+              );
+            case 'projects':
+              return projects.length > 0 ? (
+                <div key={id} className="mb-6">
+                  <h3 className="text-sm font-black uppercase text-primary tracking-widest mb-4 border-b border-primary/20 pb-1">Proyectos</h3>
+                  {projects.map(p => (
+                    <div key={p.id} className="mb-3">
+                      <h4 className="font-bold text-sm">{p.name}</h4>
+                      <p className="text-xs leading-relaxed">{p.description}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null;
+            case 'profile':
+              return (
+                <div key={id} className="mb-6">
+                  <h1 className="text-3xl font-black uppercase leading-tight mb-2" style={{ color: config.styles.titleColor }}>{personal.firstName} <br /> {personal.lastName}</h1>
+                  <p className="text-xs leading-relaxed text-justify opacity-80">{personal.profileSummary}</p>
+                </div>
+              );
+            case 'languages':
+              return (
+                <div key={id} className="mb-6">
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest mb-2 border-b border-primary/20 pb-1">Idiomas</h3>
+                  {languages.map(l => (
+                    <div key={l.id} className="flex justify-between text-xs mb-1"><span>{l.name}</span><span className="opacity-60">{l.level}</span></div>
+                  ))}
+                </div>
+              );
+            case 'certifications':
+              return certifications.length > 0 ? (
+                <div key={id} className="mb-6">
+                  <h3 className="text-xs font-black uppercase text-primary tracking-widest mb-2 border-b border-primary/20 pb-1">Certificaciones</h3>
+                  {certifications.map(c => (
+                    <div key={c.id} className="mb-2 text-xs">
+                      <div className="font-bold">{c.name}</div>
+                      <div className="opacity-60">{c.issuer}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : null;
+            default: return null;
+          }
+        };
+
+        return (
+          <div className="flex min-h-full" style={customContainerStyle}>
+            {config.layout.type === 'sidebar-left' && (
+              <>
+                <aside className="w-[30%] bg-slate-50 p-6 border-r flex flex-col">
+                  {config.layout.sidebarSections.map(sid => renderSection(sid))}
+                </aside>
+                <main className="flex-1 p-8">
+                  {config.layout.mainSections.map(mid => renderSection(mid))}
+                </main>
+              </>
+            )}
+            {/* Simple fallback implementation for creating structure first */}
+            {config.layout.type === 'single' && (
+              <main className="w-full p-10">
+                {config.layout.mainSections.map(mid => renderSection(mid))}
+              </main>
+            )}
+          </div>
+        );
+
       case CVTemplateType.ATS:
       default:
         return (
-          <div className="p-14 space-y-5 font-sans text-[#222]" style={{ marginTop: '-0.5rem' }}>
+          <div className="p-14 space-y-5 font-sans text-[#222]" style={{ marginTop: '-0.5rem', ...containerStyle }}>
             <header className="text-center">
               <h1 className="text-2xl font-bold tracking-tight">{personal.firstName.toUpperCase()} {personal.lastName.toUpperCase()}</h1>
               <p className="text-xs mt-1">

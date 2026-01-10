@@ -3,8 +3,31 @@ export enum CVTemplateType {
   ATS = 'ATS',
   MODERN = 'MODERN',
   CLASSIC = 'CLASSIC',
-  HARVARD = 'HARVARD'
+  HARVARD = 'HARVARD',
+  CUSTOM = 'CUSTOM'
 }
+
+export interface TemplateConfig {
+  id: string;
+  name: string;
+  author: string; // Name of creator
+  isPublic: boolean;
+  styles: {
+    primaryColor: string;
+    backgroundColor: string;
+    fontFamily: string;
+    bodyColor: string;
+    titleColor: string;
+  };
+  layout: {
+    type: 'single' | 'sidebar-left' | 'sidebar-right';
+    sidebarWidth?: string; // e.g. '30%'
+    sidebarSections: string[]; // IDs of sections
+    mainSections: string[]; // IDs of sections
+  };
+}
+
+
 
 export enum FormalityLevel {
   VERY_FORMAL = 'VERY_FORMAL',
@@ -71,6 +94,10 @@ export interface PersonalData {
   website: string;
   profileSummary: string;
   photoUrl?: string; // Optional URL for profile picture
+  design?: {
+    primaryColor?: string;
+    fontFamily?: string;
+  };
 }
 
 export interface CVData {
@@ -87,6 +114,7 @@ export interface CVData {
   languages: Language[];
   certifications: Certification[];
   projects: Project[];
+  customTemplate?: TemplateConfig;
 }
 
 export interface AIAction {

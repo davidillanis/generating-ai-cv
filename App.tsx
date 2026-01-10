@@ -9,6 +9,7 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
 import Templates from './pages/Templates';
+import TemplateBuilder from './pages/TemplateBuilder';
 import Login from './pages/Login';
 
 // Mock Initial Data conforme a estándares de Perú (Failsafe fallback)
@@ -71,8 +72,8 @@ const AppContent: React.FC = () => {
           setCvs(parsedCvs);
           setActiveCVId(parsedCvs[0].id);
         } else {
-             // No CVs found, don't create default yet, let user create one in Dashboard
-             setCvs([]);
+          // No CVs found, don't create default yet, let user create one in Dashboard
+          setCvs([]);
         }
       } catch (err) {
         console.error('Error loading CVs:', err);
@@ -89,7 +90,7 @@ const AppContent: React.FC = () => {
   const updateActiveCV = async (newData: CVData) => {
     // 1. Optimistic Update
     setCvs(prev => prev.map(c => c.id === newData.id ? { ...newData, lastModified: new Date().toISOString() } : c));
-    
+
     // 2. Persist to Supabase
     if (user && newData.id && newData.id !== 'temp') {
       try {
@@ -101,7 +102,7 @@ const AppContent: React.FC = () => {
             updated_at: new Date().toISOString()
           })
           .eq('id', newData.id);
-          
+
         if (error) throw error;
       } catch (err) {
         console.error('Error saving CV:', err);
@@ -116,47 +117,47 @@ const AppContent: React.FC = () => {
     const timestamp = new Date().toISOString();
     const tempId = crypto.randomUUID(); // Temporary ID
 
-    const newCVContent: CVData = { 
-        ...INITIAL_CV_SKELETON, 
-        ...initialData,
-        id: tempId,
-        title: initialData?.title || 'Nuevo Currículum',
-        lastModified: timestamp,
-        personal: {
-            ...INITIAL_CV_SKELETON.personal,
-            ...(initialData?.personal || {})
-        }
+    const newCVContent: CVData = {
+      ...INITIAL_CV_SKELETON,
+      ...initialData,
+      id: tempId,
+      title: initialData?.title || 'Nuevo Currículum',
+      lastModified: timestamp,
+      personal: {
+        ...INITIAL_CV_SKELETON.personal,
+        ...(initialData?.personal || {})
+      }
     };
 
     try {
-        const { data, error } = await supabase
-            .from('cvs')
-            .insert({
-                user_id: user.id,
-                title: newCVContent.title,
-                content: newCVContent,
-                updated_at: timestamp
-            })
-            .select()
-            .single();
+      const { data, error } = await supabase
+        .from('cvs')
+        .insert({
+          user_id: user.id,
+          title: newCVContent.title,
+          content: newCVContent,
+          updated_at: timestamp
+        })
+        .select()
+        .single();
 
-        if (error) throw error;
-        if (data) {
-            const finalCV = { ...newCVContent, id: data.id };
-            setCvs(prev => [finalCV, ...prev]);
-            setActiveCVId(data.id);
-            return data.id;
-        }
+      if (error) throw error;
+      if (data) {
+        const finalCV = { ...newCVContent, id: data.id };
+        setCvs(prev => [finalCV, ...prev]);
+        setActiveCVId(data.id);
+        return data.id;
+      }
     } catch (err) {
-        console.error('Error creating CV:', err);
-        alert('Error al crear el CV');
+      console.error('Error creating CV:', err);
+      alert('Error al crear el CV');
     }
     return '';
   };
 
   const deleteCV = async (id: string) => {
     if (!user) return;
-    
+
     // Optimistic update
     const previousCvs = [...cvs];
     setCvs(prev => prev.filter(c => c.id !== id));
@@ -168,7 +169,7 @@ const AppContent: React.FC = () => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       // If the deleted CV was active, switch to another one
       if (activeCVId === id) {
         const remaining = cvs.filter(c => c.id !== id);
@@ -192,30 +193,38 @@ const AppContent: React.FC = () => {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-      
-      <Route 
-        path="/dashboard" 
+
+      <Route
+        path="/dashboard"
         element={
           <RequireAuth>
             <Dashboard cvs={cvs} onSelect={setActiveCVId} onCreate={createNewCV} onDelete={deleteCV} />
           </RequireAuth>
-        } 
+        }
       />
-      <Route 
-        path="/editor" 
+      <Route
+        path="/editor"
         element={
           <RequireAuth>
             <Editor data={activeCV} onUpdate={updateActiveCV} />
           </RequireAuth>
-        } 
+        }
       />
-      <Route 
-        path="/templates" 
+      <Route
+        path="/templates"
         element={
           <RequireAuth>
             <Templates data={activeCV} onUpdate={updateActiveCV} />
           </RequireAuth>
-        } 
+        }
+      />
+      <Route
+        path="/template-builder"
+        element={
+          <RequireAuth>
+            <TemplateBuilder />
+          </RequireAuth>
+        }
       />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

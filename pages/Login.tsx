@@ -44,7 +44,7 @@ const Login: React.FC = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: window.location.origin + '/dashboard'
+          redirectTo: window.location.origin
         }
       });
       if (error) throw error;
@@ -60,8 +60,8 @@ const Login: React.FC = () => {
           {isSignUp ? 'Crear Cuenta' : 'Iniciar Sesión'}
         </h2>
         <p className="auth-subtitle">
-          {isSignUp 
-            ? 'Únete a Qawary Oruro - CV Inteligente' 
+          {isSignUp
+            ? 'Únete a Qawary Oruro - CV Inteligente'
             : 'Bienvenido de nuevo'}
         </p>
 
@@ -103,12 +103,12 @@ const Login: React.FC = () => {
           <span>O continúa con</span>
         </div>
 
-        <button 
-          onClick={handleGoogleLogin} 
+        <button
+          onClick={handleGoogleLogin}
           className="btn btn-google"
           disabled={loading}
         >
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" width="20" height="20" style={{marginRight: '8px'}}>
+          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" width="20" height="20" style={{ marginRight: '8px' }}>
             <path
               fill="currentColor"
               d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
@@ -120,8 +120,8 @@ const Login: React.FC = () => {
         <div style={{ marginTop: '1.5rem', textAlign: 'center', fontSize: '0.875rem', color: '#94a3b8' }}>
           {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
           {' '}
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setIsSignUp(!isSignUp)}
             style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
           >

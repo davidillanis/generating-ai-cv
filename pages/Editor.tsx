@@ -203,6 +203,15 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                   </div>
                 </div>
                 <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase">Titulo</label>
+                  <input
+                    className="w-full rounded-xl border-slate-200 h-11 text-sm"
+                    placeholder="Ing. De Sistemas"
+                    value={data.personal.jobTitle || ''}
+                    onChange={e => handlePersonalChange('jobTitle', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-400 uppercase">URL de Foto (Opcional)</label>
                   <input
                     className="w-full rounded-xl border-slate-200 h-11 text-sm"
@@ -303,6 +312,7 @@ const Editor: React.FC<EditorProps> = ({ data, onUpdate }) => {
                     </button>
                     <input placeholder="Grado o Título" className="w-full rounded-lg border-slate-200 text-sm h-10" value={edu.degree} onChange={e => updateItem('education', edu.id, { degree: e.target.value })} />
                     <input placeholder="Institución" className="w-full rounded-lg border-slate-200 text-sm h-10" value={edu.institution} onChange={e => updateItem('education', edu.id, { institution: e.target.value })} />
+                    <input placeholder="Ubicación (ej. Lima, Perú)" className="w-full rounded-lg border-slate-200 text-sm h-10" value={edu.location || ''} onChange={e => updateItem('education', edu.id, { location: e.target.value })} />
                     <div className="grid grid-cols-2 gap-4">
                       <input type="month" className="rounded-lg border-slate-200 text-sm h-10" value={edu.startDate} onChange={e => updateItem('education', edu.id, { startDate: e.target.value })} />
                       <input type="month" className="rounded-lg border-slate-200 text-sm h-10" value={edu.endDate} onChange={e => updateItem('education', edu.id, { endDate: e.target.value })} />

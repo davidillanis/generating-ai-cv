@@ -29,7 +29,9 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
           <div className="p-12 font-serif text-[#1a1a1a] space-y-2" style={{ marginTop: '-1rem', ...containerStyle, fontFamily: fontFamily !== 'inherit' ? fontFamily : 'serif' }}>
             <header className="text-center">
               <h1 className="text-1xl font-bold uppercase tracking-tighter">{personal.firstName} {personal.lastName}</h1>
-              <div className="text-[11px] mt-2 space-x-2">
+              <h2 className="text-sm font-medium leading-tight tracking-tight text-gray-800">{personal.jobTitle}</h2>
+
+              <div className="text-[11px] mt-0 space-x-2">
                 <span>{personal.city}, {personal.country}</span>
                 <span>•</span>
                 <span>{personal.phone}</span>
@@ -126,9 +128,9 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
       case CVTemplateType.MODERN:
         return (
           <div className="flex min-h-full bg-white" style={containerStyle}>
-            <aside className="w-[240px] bg-[#f8fafc] border-r p-8 flex flex-col gap-8">
+            <aside className="w-[240px] bg-[#f8fafc] border-r p-8 flex flex-col gap-2">
               {personal.photoUrl && (
-                <div className="flex justify-center mb-2">
+                <div className="flex justify-center mb-0">
                   <img
                     src={personal.photoUrl}
                     alt={`${personal.firstName} ${personal.lastName}`}
@@ -140,8 +142,10 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
                   />
                 </div>
               )}
-
-              <div className="space-y-4">
+              <div className="flex justify-center">
+                <h2 className="text-sm font-medium leading-tight tracking-tight text-gray-800 m-0">{personal.jobTitle}</h2>
+              </div>
+              <div className="space-y-4 mt-2">
                 <h3 className="text-[10px] font-black uppercase text-primary tracking-widest">Contacto</h3>
                 <div className="space-y-2 text-[11px] text-slate-600">
                   <div className="flex items-center gap-2">
@@ -260,7 +264,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
                   {education.map(edu => (
                     <div key={edu.id}>
                       <h4 className="text-[12px] font-bold">{edu.degree}</h4>
-                      <p className="text-[11px] text-slate-500">{edu.institution} | {edu.endDate}</p>
+                      <p className="text-[11px] text-slate-500">{edu.institution}{edu.location && ` — ${edu.location}`} | {edu.endDate}</p>
                     </div>
                   ))}
                 </section>
@@ -346,7 +350,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
                   {education.map(edu => (
                     <div key={edu.id} className="mb-2">
                       <h4 className="font-bold">{edu.degree}</h4>
-                      <p className="text-xs text-slate-500">{edu.institution} | {edu.startDate} - {edu.endDate}</p>
+                      <p className="text-xs text-slate-500">{edu.institution}{edu.location && ` — ${edu.location}`} | {edu.startDate} - {edu.endDate}</p>
                     </div>
                   ))}
                 </div>
@@ -422,6 +426,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
           <div className="p-14 space-y-5 font-sans text-[#222]" style={{ marginTop: '-0.5rem', ...containerStyle }}>
             <header className="text-center">
               <h1 className="text-2xl font-bold tracking-tight">{personal.firstName.toUpperCase()} {personal.lastName.toUpperCase()}</h1>
+              <h2 className="text-sm font-medium leading-tight tracking-tight text-gray-800">{personal.jobTitle}</h2>
               <p className="text-xs mt-1">
                 {personal.city}, {personal.country} | {personal.phone} | {personal.email}
               </p>
@@ -477,7 +482,7 @@ const CVPreview: React.FC<CVPreviewProps> = ({ data, scale = 1 }) => {
               {education.map(edu => (
                 <div key={edu.id} className="flex justify-between text-xs">
                   <div>
-                    <span className="font-bold">{edu.institution}</span>, {edu.degree}
+                    <span className="font-bold">{edu.institution}</span>{edu.location && ` — ${edu.location}`}, {edu.degree}
                   </div>
                   <span className="font-medium">{edu.startDate} — {edu.endDate}</span>
                 </div>

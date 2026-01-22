@@ -128,3 +128,22 @@ export interface AIActionResponse {
   message: string;
   action?: AIAction;
 }
+
+
+export interface Folder {
+  id: string;
+  name: string;
+}
+
+export interface CVFile {
+  id: string;
+  name: string;
+  description: string;
+  uploadDate: string;
+  folderId: string; // Foreign Key to UserFolder
+  type: string; // MIME type or extension
+  size: number;
+  url?: string; // For download
+  content?: string; // For data URLs if storing locally
+  filePath?: string; // Path in storage bucket
+}

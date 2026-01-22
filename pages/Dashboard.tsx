@@ -105,6 +105,15 @@ const Dashboard: React.FC<DashboardProps> = ({ cvs, onSelect, onCreate, onDelete
           <span className="font-black text-lg">CV IA PRO</span>
         </div>
         <div className="flex items-center gap-4">
+          <button className="text-sm font-bold text-primary">
+            Mis CVs
+          </button>
+          <button onClick={() => navigate('/repository')} className="text-sm font-medium text-slate-500 hover:text-primary transition-colors">
+            Repositorio
+          </button>
+
+          <div className="w-px h-6 bg-slate-200 mx-2"></div>
+
           <span className="text-sm font-medium text-slate-600 hidden md:block">{user?.email}</span>
           <div className="size-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs uppercase">
             {user?.email?.charAt(0) || 'U'}

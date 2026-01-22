@@ -10,7 +10,10 @@ import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
 import Templates from './pages/Templates';
 import TemplateBuilder from './pages/TemplateBuilder';
+import Repository from './pages/Repository';
+
 import Login from './pages/Login';
+
 
 // Mock Initial Data conforme a estándares de Perú (Failsafe fallback)
 const INITIAL_CV_SKELETON: CVData = {
@@ -223,6 +226,14 @@ const AppContent: React.FC = () => {
         element={
           <RequireAuth>
             <TemplateBuilder />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/repository"
+        element={
+          <RequireAuth>
+            <Repository />
           </RequireAuth>
         }
       />
